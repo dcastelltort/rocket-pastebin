@@ -12,11 +12,11 @@ use std::path::Path;
 
 use rocket::Data;
 
-use std::fs::File;
+use std::fs::{self, File};
 use rocket::http::RawStr;
 
 fn main() {
-    rocket::ignite().mount("/", routes![index, upload, retrieve]).launch();
+    rocket::ignite().mount("/", routes![index, upload, retrieve, delete]).launch();
 }
 
 #[get("/")]
@@ -51,4 +51,13 @@ fn upload(paste: Data) -> io::Result<String> {
 fn retrieve(id: &RawStr) -> Option<File> {
     let filename = format!("upload/{id}", id = id);
     File::open(&filename).ok()
+}
+
+#[delete("/<id>")]
+fn delete(id: &RawStr) -> &str {
+    let filename = format!("upload/{id}", id = id);
+    match std::fs::remove_file(&filename) {
+        Ok(_) => "",
+        Err(_) => "delete failed"
+    }
 }
