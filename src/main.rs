@@ -13,6 +13,8 @@ use std::path::Path;
 use rocket::Data;
 
 use std::fs::{self, File};
+use std::io::Write;
+
 use rocket::http::RawStr;
 use rocket::response::status;
 use rocket::http::Status;
@@ -37,6 +39,7 @@ fn index() -> &'static str {
     "
 }
 
+
 #[post("/", data = "<paste>")]
 fn upload(paste: Data) -> Result<String, status::Custom<&'static str>> {
     
@@ -45,12 +48,31 @@ fn upload(paste: Data) -> Result<String, status::Custom<&'static str>> {
     let url = format!("{host}/{id}\n", host = "http://localhost:8000", id = id);
     
     // Write the paste out to the file and return the URL.
-    match paste.stream_to_file(Path::new(&filename)) {
+    /*match paste.stream_to_file(Path::new(&filename)) {
         Ok(_) => Ok(url),
         Err(_) => Err(status::Custom(Status::InternalServerError, "failed uploading"))
+    }*/
+    let mut read_size = 0;
+    const MAX_UPLOAD_SIZE : usize = 65536;
+    let mut file = match File::create(&filename) {
+        Ok(f) => f,
+        Err(_) => { return Err(status::Custom(Status::InternalServerError, "failed uploading")); }
+    };
+
+    loop  {
+        let buffer : &[u8] = paste.peek();
+        read_size += buffer.len();
+        if read_size >= MAX_UPLOAD_SIZE {
+            return Err(status::Custom(Status::PartialContent, "upload size exceeded"));
+        }
+        file.write(buffer);
+        if paste.peek_complete() {
+            break;
+        }
     }
-    
-    File::Write()
+
+    file.flush();
+    Ok(url)
 }
 
 #[get("/<id>")]
