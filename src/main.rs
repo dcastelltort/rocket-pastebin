@@ -13,6 +13,8 @@ use std::path::Path;
 use rocket::Data;
 
 use std::fs::{self, File};
+use std::io::BufReader;
+use std::io::Read;
 use std::io::Write;
 
 use rocket::http::RawStr;
@@ -74,9 +76,20 @@ fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'stat
 }
 
 #[get("/<id>")]
-fn retrieve(id: &RawStr) -> Option<File> {
+fn retrieve(id: &RawStr) -> Option<content::Plain<String>> {
     let filename = format!("upload/{id}", id = id);
-    File::open(&filename).ok()
+    //File::open(&filename).ok()
+    let file = match File::open(&filename) {
+        Ok(f) => f,
+        Err(_) => return None
+    };
+    let mut buf_reader = BufReader::new(file);
+    let mut contents = String::new();
+    match buf_reader.read_to_string(&mut contents) {
+        Ok(c) => c,
+        Err(_) => return None
+    };
+    Some(content::Plain(contents))
 }
 
 #[delete("/<id>")]
