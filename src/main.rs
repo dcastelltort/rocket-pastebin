@@ -17,6 +17,7 @@ use std::io::Write;
 
 use rocket::http::RawStr;
 use rocket::response::status;
+use rocket::response::content;
 use rocket::http::Status;
 
 fn main() {
@@ -41,17 +42,13 @@ fn index() -> &'static str {
 
 
 #[post("/", data = "<paste>")]
-fn upload(paste: Data) -> Result<String, status::Custom<&'static str>> {
+fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'static str> > {
     
     let id = PasteID::new(32);
     let filename = format!("upload/{id}", id = id);
     let url = format!("{host}/{id}\n", host = "http://localhost:8000", id = id);
     
     // Write the paste out to the file and return the URL.
-    /*match paste.stream_to_file(Path::new(&filename)) {
-        Ok(_) => Ok(url),
-        Err(_) => Err(status::Custom(Status::InternalServerError, "failed uploading"))
-    }*/
     let mut read_size = 0;
     const MAX_UPLOAD_SIZE : usize = 65536;
     let mut file = match File::create(&filename) {
@@ -72,7 +69,7 @@ fn upload(paste: Data) -> Result<String, status::Custom<&'static str>> {
     }
 
     file.flush();
-    Ok(url)
+    Ok(content::Plain(url))
 }
 
 #[get("/<id>")]
