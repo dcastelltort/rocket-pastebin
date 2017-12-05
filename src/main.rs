@@ -60,6 +60,7 @@ fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'stat
         let buffer : &[u8] = paste.peek();
         read_size += buffer.len();
         if read_size >= MAX_UPLOAD_SIZE {
+            fs::remove_file(filename);
             return Err(status::Custom(Status::PartialContent, "upload size exceeded"));
         }
         file.write(buffer);
