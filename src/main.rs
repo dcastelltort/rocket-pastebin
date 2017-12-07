@@ -7,9 +7,6 @@ extern crate rand;
 mod paste_id;
 use paste_id::PasteID;
 
-use std::io;
-use std::path::Path;
-
 use rocket::Data;
 
 use std::fs::{self, File};
@@ -51,27 +48,26 @@ fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'stat
     let url = format!("{host}/{id}\n", host = "http://localhost:8000", id = id);
     
     // Write the paste out to the file and return the URL.
-    let mut read_size = 0;
     const MAX_UPLOAD_SIZE : usize = 65536;
     let mut file = match File::create(&filename) {
         Ok(f) => f,
         Err(_) => { return Err(status::Custom(Status::InternalServerError, "failed uploading")); }
     };
 
-    loop  {
-        let buffer : &[u8] = paste.peek();
-        read_size += buffer.len();
-        if read_size >= MAX_UPLOAD_SIZE {
-            fs::remove_file(filename);
-            return Err(status::Custom(Status::PartialContent, "upload size exceeded"));
-        }
-        file.write(buffer);
-        if paste.peek_complete() {
-            break;
-        }
-    }
+    let write_size = match paste.stream_to(&mut file) {
+        Ok(size) => size as usize,
+        Err(_) => { return Err(status::Custom(Status::InternalServerError, "failed uploading")); }
+    };
+    if write_size >= MAX_UPLOAD_SIZE {
+        fs::remove_file(filename).unwrap();
+        return Err(status::Custom(Status::PartialContent, "upload size exceeded"));
+    }   
 
-    file.flush();
+    match file.flush() {
+        Ok(v) => v,
+        Err(_) => { return Err(status::Custom(Status::InternalServerError, "failed uploading")); }
+    };
+    
     Ok(content::Plain(url))
 }
 
