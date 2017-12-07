@@ -14,7 +14,6 @@ use std::io::BufReader;
 use std::io::Read;
 use std::io::Write;
 
-use rocket::http::RawStr;
 use rocket::response::status;
 use rocket::response::content;
 use rocket::http::Status;
@@ -71,7 +70,7 @@ fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'stat
 }
 
 #[get("/<id>")]
-fn retrieve(id: &RawStr) -> Option<content::Plain<String>> {
+fn retrieve(id: PasteID) -> Option<content::Plain<String>> {
     let filename = format!("upload/{id}", id = id);
     //File::open(&filename).ok()
     let file = match File::open(&filename) {
@@ -88,7 +87,7 @@ fn retrieve(id: &RawStr) -> Option<content::Plain<String>> {
 }
 
 #[delete("/<id>")]
-fn delete(id: &RawStr) -> &str {
+fn delete(id: PasteID) -> &str {
     let filename = format!("upload/{id}", id = id);
     match std::fs::remove_file(&filename) {
         Ok(_) => "",
