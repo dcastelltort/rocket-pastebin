@@ -25,6 +25,11 @@ impl<'a> PasteID<'a> {
 
         PasteID(Cow::Owned(id))
     }
+
+    pub fn as_string(&self) -> String {
+        let id_str = format!("{id}", id = self);
+        id_str
+    }
 }
 
 impl<'a> fmt::Display for PasteID<'a> {

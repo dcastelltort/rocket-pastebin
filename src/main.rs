@@ -45,7 +45,6 @@ fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'stat
     
     let id = PasteID::new(32);
     let filename = format!("upload/{id}", id = id);
-    let url = format!("{host}/{id}\n", host = "http://localhost:8000", id = id);
     
     // Write the paste out to the file and return the URL.
     const MAX_UPLOAD_SIZE : usize = 65536;
@@ -67,8 +66,8 @@ fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'stat
         Ok(v) => v,
         Err(_) => { return Err(status::Custom(Status::InternalServerError, "failed uploading")); }
     };
-    
-    Ok(content::Plain(url))
+
+    Ok(content::Plain(id.as_string()))
 }
 
 #[get("/<id>")]
