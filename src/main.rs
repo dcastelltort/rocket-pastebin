@@ -10,6 +10,7 @@ use paste_id::PasteID;
 use rocket::Data;
 
 use std::fs::{self, File};
+use std::path::Path;
 use std::io::BufReader;
 use std::io::Read;
 use std::io::Write;
@@ -19,7 +20,7 @@ use rocket::response::content;
 use rocket::http::Status;
 
 fn main() {
-    rocket::ignite().mount("/", routes![index, upload, retrieve, delete]).launch();
+    rocket::ignite().mount("/", routes![index, upload, retrieve, delete, update]).launch();
 }
 
 #[get("/")]
@@ -38,13 +39,10 @@ fn index() -> &'static str {
     "
 }
 
-
-#[post("/", data = "<paste>")]
-fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'static str> > {
+fn upsert(id: PasteID, paste: Data) -> Result< content::Plain<String> , status::Custom<&'static str> > {
     
-    let id = PasteID::new(32);
     let filename = format!("upload/{id}", id = id);
-    
+
     // Write the paste out to the file and return the URL.
     const MAX_UPLOAD_SIZE : usize = 65536;
     let mut file = match File::create(&filename) {
@@ -69,6 +67,23 @@ fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'stat
     Ok(content::Plain(id.as_string()))
 }
 
+#[post("/", data = "<paste>")]
+fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'static str> > {
+    
+    let id = PasteID::new(32);
+    upsert(id, paste)
+}
+
+#[put("/<id>", data = "<paste>")]
+fn update(id: PasteID, paste: Data) -> Result< content::Plain<String> , status::Custom<&'static str> > {
+    
+    let filename = format!("upload/{id}", id = id);
+    if Path::new(&filename).is_file() {
+        return upsert(id, paste);
+    }
+    Err(status::Custom(Status::NotFound, "id no match"))
+}
+
 #[get("/<id>")]
 fn retrieve(id: PasteID) -> Option<content::Plain<String>> {
     let filename = format!("upload/{id}", id = id);
@@ -85,6 +100,8 @@ fn retrieve(id: PasteID) -> Option<content::Plain<String>> {
     };
     Some(content::Plain(contents))
 }
+
+
 
 #[delete("/<id>")]
 fn delete(id: PasteID) -> &str {
