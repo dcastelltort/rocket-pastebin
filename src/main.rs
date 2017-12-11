@@ -7,6 +7,8 @@ extern crate rand;
 mod paste_id;
 use paste_id::PasteID;
 
+#[cfg(test)] mod tests;
+
 use rocket::Data;
 
 use std::fs::{self, File};
@@ -15,12 +17,16 @@ use std::io::BufReader;
 use std::io::Read;
 use std::io::Write;
 
+use rocket::Rocket;
 use rocket::response::status;
 use rocket::response::content;
 use rocket::http::Status;
 
+fn rocket() -> Rocket {
+    rocket::ignite().mount("/", routes![index, upload, retrieve, delete, update])
+}
 fn main() {
-    rocket::ignite().mount("/", routes![index, upload, retrieve, delete, update]).launch();
+    rocket().launch();
 }
 
 #[get("/")]
