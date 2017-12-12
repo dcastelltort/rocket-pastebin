@@ -36,12 +36,20 @@ fn index() -> &'static str {
 
       POST /
 
-          accepts raw data in the body of the request and responds with a URL of
+          accepts raw data in the body of the request and responds with the <id> of
           a page containing the body's content
 
       GET /<id>
 
           retrieves the content for the paste with id `<id>`
+
+      PUT /<id>
+
+        updates the content of the paste with id `<id>``
+
+      DELETE /<id>
+
+        delete the paste with the id `<id>`
     "
 }
 
