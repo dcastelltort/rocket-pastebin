@@ -8,12 +8,12 @@ use super::paste_id;
 fn base_test() {
     let rocket = rocket();
     let client = Client::new(rocket).expect("valid rocket instance");
-    let mut response = client.get("/").dispatch();
+    let response = client.get("/").dispatch();
 
     assert_eq!(response.status(), Status::Ok);
 }
 #[test]
-fn test_upload() {
+fn test_upload_retrieve() {
     let rocket = rocket();
     let client = Client::new(rocket).expect("valid rocket instance");
     let mut response = client.post("/")
@@ -23,6 +23,13 @@ fn test_upload() {
     
     assert_eq!(response.status(), Status::Ok);
     assert_eq!(response.content_type(), Some(ContentType::Plain));
-    assert!(paste_id::valid_id(response.body_string().unwrap().as_str()));
+    let id = response.body_string().unwrap();
+    assert!(paste_id::valid_id(id.as_str()));
 
+    let url = format!("/{id}", id = id);
+    response = client.get(url).dispatch();
+
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(response.content_type(), Some(ContentType::Plain));
+    assert!(response.body_string().unwrap().contains("this is an upload test"));
 }
