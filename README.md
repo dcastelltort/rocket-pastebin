@@ -1,7 +1,7 @@
 TODO: 
 * add a web form to the index where users can manually input new pastes. Accept the form at POST /. Use format and/or rank to specify which of the two POST / routes should be called.
 * Add a new route, GET /<id>/<lang> that syntax highlights the paste with ID <id> for language <lang>. If <lang> is not a known language, do no highlighting. Possibly validate <lang> with FromParam.
-
+* persist in a DB instead of file (diesel+postgres)
 
 WIP:
 * Dispatch a thread before launching Rocket in main that periodically cleans up idling old pastes in upload/.
