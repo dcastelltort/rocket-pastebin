@@ -4,10 +4,10 @@ TODO:
 
 
 WIP:
-* add config
 * Dispatch a thread before launching Rocket in main that periodically cleans up idling old pastes in upload/.
 
 Done:
+* add config file
 * Use the local module to write unit tests for your pastebin.
 * Add a PUT /<id> route that allows a user with the key for <id> to replace the existing paste, if any.
 * Support deletion of pastes by adding a new DELETE /<id> route. Use PasteID to validate <id>.
