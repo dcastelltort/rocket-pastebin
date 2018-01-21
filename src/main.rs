@@ -3,9 +3,13 @@
 
 extern crate rocket;
 extern crate rand;
+extern crate crossbeam;
 
 mod paste_id;
 use paste_id::PasteID;
+
+mod cleanup_worker;
+use cleanup_worker::CleanupWorker;
 
 #[cfg(test)] mod tests;
 
@@ -17,16 +21,24 @@ use std::io::BufReader;
 use std::io::Read;
 use std::io::Write;
 
+use std::time::Duration;
+
 use rocket::Rocket;
 use rocket::response::status;
 use rocket::response::content;
 use rocket::http::Status;
 
+const UPLOAD_SUB_DIR : &'static str = "upload";
+
 fn rocket() -> Rocket {
     rocket::ignite().mount("/", routes![index, upload, retrieve, delete, update])
 }
 fn main() {
+    let worker = CleanupWorker::new(1, UPLOAD_SUB_DIR.to_string(), Duration::from_secs(cleanup_worker::DEFAULT_RETENTION_SECONDS));
+    worker.start();
     rocket().launch();
+
+    worker.stop();
 }
 
 #[get("/")]
@@ -55,7 +67,7 @@ fn index() -> &'static str {
 
 fn upsert(id: PasteID, paste: Data) -> Result< content::Plain<String> , status::Custom<&'static str> > {
     
-    let filename = format!("upload/{id}", id = id);
+    let filename = format!("{}/{id}", UPLOAD_SUB_DIR, id = id);
 
     // Write the paste out to the file and return the URL.
     const MAX_UPLOAD_SIZE : usize = 65536;
@@ -91,7 +103,7 @@ fn upload(paste: Data) -> Result< content::Plain<String> , status::Custom<&'stat
 #[put("/<id>", data = "<paste>")]
 fn update(id: PasteID, paste: Data) -> Result< content::Plain<String> , status::Custom<&'static str> > {
     
-    let filename = format!("upload/{id}", id = id);
+    let filename = format!("{}/{id}", UPLOAD_SUB_DIR, id = id);
     if Path::new(&filename).is_file() {
         return upsert(id, paste);
     }
@@ -100,7 +112,7 @@ fn update(id: PasteID, paste: Data) -> Result< content::Plain<String> , status::
 
 #[get("/<id>")]
 fn retrieve(id: PasteID) -> Option<content::Plain<String>> {
-    let filename = format!("upload/{id}", id = id);
+    let filename = format!("{}/{id}", UPLOAD_SUB_DIR, id = id);
     //File::open(&filename).ok()
     let file = match File::open(&filename) {
         Ok(f) => f,
@@ -119,7 +131,7 @@ fn retrieve(id: PasteID) -> Option<content::Plain<String>> {
 
 #[delete("/<id>")]
 fn delete(id: PasteID) -> &str {
-    let filename = format!("upload/{id}", id = id);
+    let filename = format!("{}/{id}", UPLOAD_SUB_DIR, id = id);
     match std::fs::remove_file(&filename) {
         Ok(_) => "",
         Err(_) => "delete failed"

@@ -10,9 +10,10 @@ Don't use this as a reference, and feedback or alternative implementations are w
 * persist in a DB instead of file (diesel+postgres)
 
 ## WIP:
-* Dispatch a thread before launching Rocket in main that periodically cleans up idling old pastes in upload/.
+* make cleanup thread safe (currently unwrapping all over the place)
 
 ## Done:
+* Dispatch a thread before launching Rocket in main that periodically cleans up idling old pastes in upload/.
 * add config file
 * Use the local module to write unit tests for your pastebin.
 * Add a PUT /<id> route that allows a user with the key for <id> to replace the existing paste, if any.
