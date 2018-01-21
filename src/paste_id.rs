@@ -25,6 +25,11 @@ impl<'a> PasteID<'a> {
 
         PasteID(Cow::Owned(id))
     }
+
+    pub fn as_string(&self) -> String {
+        let id_str = format!("{id}", id = self);
+        id_str
+    }
 }
 
 impl<'a> fmt::Display for PasteID<'a> {
@@ -34,7 +39,7 @@ impl<'a> fmt::Display for PasteID<'a> {
 }
 
 /// Returns `true` if `id` is a valid paste ID and `false` otherwise.
-fn valid_id(id: &str) -> bool {
+pub fn valid_id(id: &str) -> bool {
     id.chars().all(|c| {
         (c >= 'a' && c <= 'z')
             || (c >= 'A' && c <= 'Z')

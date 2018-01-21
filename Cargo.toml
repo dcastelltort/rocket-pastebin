@@ -7,3 +7,4 @@ authors = ["Damien Castelltort <dcastelltort@gmail.com>"]
 rocket = "0.3.3"
 rocket_codegen = "0.3.3"
 rand = "0.3"
+crossbeam = "0.3.2"
