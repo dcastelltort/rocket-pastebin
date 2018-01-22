@@ -10,9 +10,9 @@ Don't use this as a reference, and feedback or alternative implementations are w
 * persist in a DB instead of file (diesel+postgres)
 
 ## WIP:
-* make cleanup thread safe (currently unwrapping all over the place)
 
 ## Done:
+* make cleanup thread safe (currently unwrapping all over the place)
 * Dispatch a thread before launching Rocket in main that periodically cleans up idling old pastes in upload/.
 * add config file
 * Use the local module to write unit tests for your pastebin.
