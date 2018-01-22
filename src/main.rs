@@ -34,7 +34,9 @@ fn rocket() -> Rocket {
     rocket::ignite().mount("/", routes![index, upload, retrieve, delete, update])
 }
 fn main() {
-    let worker = CleanupWorker::new(1, UPLOAD_SUB_DIR.to_string(), Duration::from_secs(cleanup_worker::DEFAULT_RETENTION_SECONDS));
+    let worker = CleanupWorker::new(cleanup_worker::DEFAULT_CLEANUP_INTERVAL_SECONDS, 
+                                    UPLOAD_SUB_DIR.to_string(), 
+                                    Duration::from_secs(cleanup_worker::DEFAULT_RETENTION_SECONDS));
     worker.start();
     rocket().launch();
 
